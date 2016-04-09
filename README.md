@@ -1,2 +1,2 @@
 # MemDump
-C++ dump memory regions of linux processes
+A C++ program to list and dump mapped memory regions of linux processes
