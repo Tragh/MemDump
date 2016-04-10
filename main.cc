@@ -7,6 +7,8 @@
 #include <iterator>
 #include <cassert>
 #include <inttypes.h>
+#include <sys/ptrace.h>
+#include <sys/wait.h>
 
 struct MapsLine{
 	bool valid;
@@ -66,11 +68,25 @@ int main(){
 
 	std::vector<MapsLine> maps;
 
+
+	struct PtraceStruct {
+		int PID;
+		int status;
+		PtraceStruct(int PID_):PID(PID_){
+			ptrace(PTRACE_ATTACH, PID, nullptr, 0);
+			waitpid(PID, &status, WSTOPPED);
+		}
+		~PtraceStruct(){
+			ptrace (PTRACE_DETACH, PID, nullptr, 0);
+		}
+	} ptraceStruct(PID);
+
+
 	{
 		//open the memory maping file for the PID
 		std::ifstream infile("/proc/"+std::to_string(PID)+"/maps");
 		if(!infile){
-			std::cout << "Couldn't open process. Wrong PID? Aborting." << std::endl;
+			std::cout << "Couldn't open /proc/PID/maps. Wrong PID? Aborting." << std::endl;
 			return 0;
 		}
 		std::string line;
